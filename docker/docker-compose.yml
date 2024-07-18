@@ -1,0 +1,74 @@
+version: '3.8'
+services:
+  stockdata-db:
+    image: mysql:latest
+    container_name: stockdata-db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${PASSWORD}
+      MYSQL_DATABASE: ${DB}
+      MYSQL_USER: ${USER}
+      MYSQL_PASSWORD: ${PASSWORD}
+    ports:
+      - "3306:3306"
+    networks:
+      - microservices-network
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  stockdata-service:
+    build:
+      context: ../backend/stockdata
+      dockerfile: Dockerfile
+    image: stockdata-service:1.0.0
+    container_name: stockdata-service
+    ports:
+      - "8083:8083"
+    networks:
+      - microservices-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_APPLICATION_NAME=stockdata-service
+      - SERVER_PORT=8083
+      - ALPHA_VANTAGE_API_KEY=6ZH2AX1ASGZT5Z85
+      - ALPHA_VANTAGE_URL=https://www.alphavantage.co
+      - ALPHA_VANTAGE_QUERY_API=/query
+      - ALPHA_VANTAGE_QUERY_FUNCTION_QUERY_PARAM=function
+      - ALPHA_VANTAGE_QUERY_SYMBOL_QUERY_PARAM=symbol
+      - ALPHA_VANTAGE_QUERY_APIKEY_QUERY_PARAM=apikey
+      - ALPHA_VANTAGE_QUERY_FUNCTION_VALUE=TIME_SERIES_DAILY
+      - SPRING_DATASOURCE_URL=jdbc:mysql://stockdata-db:3306/${DB}
+      - SPRING_DATASOURCE_USERNAME=${USER}
+      - SPRING_DATASOURCE_PASSWORD=${PASSWORD}
+      - SPRING_DATASOURCE_DRIVER_CLASS_NAME=com.mysql.cj.jdbc.Driver
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=none
+      - SPRING_JPA_PROPERTIES_HIBERNATE_DIALECT=org.hibernate.dialect.MySQL8Dialect
+      - SPRING_JPA_PROPERTIES_HIBERNATE_VALIDATE_ON_METADATA=false
+      - SPRING_JPA_GENERATE_DDL=false
+      - DB_CREATE_FILENAME=db_create.sql
+      - IS_STATIC_RESULTS=true
+    depends_on:
+      - stockdata-db
+
+  stockdata-ui:
+    build:
+      context: ../frontend/app
+      dockerfile: Dockerfile
+    image: stockdata-ui:1.0.0
+    container_name: stockdata-ui
+    ports:
+      - "3001:80"
+    networks:
+      - microservices-network
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - stockdata-service
+
+volumes:
+  db_data:
+
+networks:
+  microservices-network:
+    driver: bridge
