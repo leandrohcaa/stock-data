@@ -19,7 +19,7 @@ services:
 
   stockdata-service:
     build:
-      context: ../backend/stockdata
+      context: ./backend/stockdata
       dockerfile: Dockerfile
     image: stockdata-service:1.0.0
     container_name: stockdata-service
@@ -53,7 +53,7 @@ services:
 
   stockdata-ui:
     build:
-      context: ../frontend/app
+      context: ./frontend
       dockerfile: Dockerfile
     image: stockdata-ui:1.0.0
     container_name: stockdata-ui

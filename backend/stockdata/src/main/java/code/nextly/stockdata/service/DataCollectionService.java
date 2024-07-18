@@ -91,16 +91,18 @@ public class DataCollectionService {
         )
         .bodyToMono(Map.class)
         .block();
+    if (response != null && response.size() == 1 && response.containsKey("Information")) {
+      throw new AlphaVantageApiException((String) response.get("Information"));
+    }
     return objectMapper.convertValue(response, AlphaVantageQueryResponse.class);
   }
 
   private AlphaVantageQueryResponse getResponseFromStaticFile(String symbol) {
     try {
-      ClassPathResource resource = new ClassPathResource("static_results_MSFT.json");
+      ClassPathResource resource = new ClassPathResource(String.format("static_results_%s.json", symbol));
       byte[] binaryData = FileCopyUtils.copyToByteArray(resource.getInputStream());
       AlphaVantageQueryResponse response = objectMapper.readValue(new String(binaryData, StandardCharsets.UTF_8),
           AlphaVantageQueryResponse.class);
-      response.getMetaData().setSymbol(symbol);
       return response;
     } catch (IOException e) {
       throw new RuntimeException(e);
