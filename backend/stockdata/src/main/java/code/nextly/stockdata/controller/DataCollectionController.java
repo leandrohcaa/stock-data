@@ -24,6 +24,6 @@ public class DataCollectionController {
 
   @PostMapping("/collect_data")
   public void collectData(@Valid @RequestBody DataCollectionRequest request) {
-    dataCollectionService.collectStockData(request.getStartDate(), request.getSymbols());
+    dataCollectionService.collectAndSaveStockData(request.getStartDate(), request.getSymbols());
   }
 }
