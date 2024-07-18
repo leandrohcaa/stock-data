@@ -4,6 +4,7 @@ import code.nextly.stockdata.dto.AlphaVantageQueryResponse;
 import code.nextly.stockdata.exceptions.AlphaVantageApiException;
 import code.nextly.stockdata.mapper.StockDataMapper;
 import code.nextly.stockdata.model.StockData;
+import jakarta.transaction.Transactional;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,12 +12,9 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.web.reactive.function.client.WebClientException;
 import org.springframework.web.util.UriComponentsBuilder;
 import reactor.core.publisher.Mono;
-
 import java.io.IOException;
-import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
@@ -58,13 +56,14 @@ public class DataCollectionService {
   private Boolean isStaticResults;
 
 
-  public void collectStockData(LocalDate startDate, List<String> symbols) {
+  @Transactional
+  public void collectAndSaveStockData(LocalDate startDate, List<String> symbols) {
     for (String symbol : symbols) {
       AlphaVantageQueryResponse alphaVantageQueryResponse = getAlphaVantageQueryResponse(symbol);
       LocalDate endDate = startDate.plusWeeks(3);
       List<StockData> stockDataBySymbolList = stockDataMapper.mapToStockDataList(alphaVantageQueryResponse,
           startDate, endDate);
-      stockDataService.deleteAndSaveStockData(stockDataBySymbolList);
+      stockDataService.deleteAndSaveStockDataBySymbol(stockDataBySymbolList);
     }
   }
 

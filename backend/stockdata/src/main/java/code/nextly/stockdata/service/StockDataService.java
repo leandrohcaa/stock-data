@@ -36,7 +36,7 @@ public class StockDataService {
   }
 
   @Transactional
-  public void deleteAndSaveStockData(List<StockData> stockDataBySymbolList) {
+  public void deleteAndSaveStockDataBySymbol(List<StockData> stockDataBySymbolList) {
     String symbol = stockDataBySymbolList.stream().findFirst().get().getSymbol();
     stockDataRepository.deleteBySymbol(symbol);
     stockDataRepository.saveAll(stockDataBySymbolList);
