@@ -60,7 +60,7 @@ const Main = () => {
           return response.data;
         } catch (error) {
           if (error.response && error.response.status === 404) {
-            return { date: day, openPrice: 0, closePrice: 0, highPrice: 0, lowPrice: 0, volume: 0 };
+            return { date: day, openPrice: null, closePrice: null, highPrice: null, lowPrice: null, volume: null };
           } else {
             throw error;
           }
@@ -101,7 +101,7 @@ const Main = () => {
       { openPrice: 0, closePrice: 0, highPrice: 0, lowPrice: 0, volume: 0 }
     );
 
-    const count = data.length;
+    const count = data.filter(r => r.openPrice != null).length;
     return {
       avgOpenPrice: total.openPrice / count,
       avgClosePrice: total.closePrice / count,
